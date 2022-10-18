@@ -1,51 +1,54 @@
-#include "main.h"
+#include "holberton.h"
+#include <stdio.h>
 
 /**
- * _printf - formatted output conversion and print data.
- * @format: input string.
+ * _printf - takes a string and args of each '%'
+ * and prints them
+ * @format: initial string containing % +
+ * char denoting type and number of args
+ * @...: variable list of arguments
  *
- * Return: number of chars printed.
+ * Return: number of characters printed.
  */
 int _printf(const char *format, ...)
 {
-	unsigned int i = 0, len = 0, ibuf = 0;
-	va_list arguments;
-	int (*function)(va_list, char *, unsigned int);
-	char *buffer;
+	int i, j;
+	int count = 0;
+	va_list lst;
+	interface ids[] = {
+		{'c', _print_char},
+		{'s', _print_string},
+		{'i', _print_int},
+		{'d', _print_int},
+		{'%', _print_mod},
+		{'\0', NULL}
+	};
 
-	va_start(arguments, format), buffer = malloc(sizeof(char) * 1024);
-	if (!format || !buffer || (format[i] == '%' && !format[i + 1]))
-		return (-1);
-	if (!format[i])
-		return (0);
-	for (i = 0; format && format[i]; i++)
-	{
+	va_start(lst, format);
+	for (i = 0; format[i]; i++)
 		if (format[i] == '%')
 		{
-			if (format[i + 1] == '\0')
-			{	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
-				return (-1);
+			i++;
+			for (; format[i] != '\0'; i++)
+			{
+				for (j = 0; ids[j].id != '\0'; j++)
+					if (format[i] == ids[j].id)
+					{
+						count += ids[j].fn(lst);
+						break;
+					}
+				if (ids[j].id)
+					break;
 			}
-			else
-			{	function = get_print_func(format, i + 1);
-				if (function == NULL)
-				{
-					if (format[i + 1] == ' ' && !format[i + 2])
-						return (-1);
-					handl_buf(buffer, format[i], ibuf), len++, i--;
-				}
-				else
-				{
-					len += function(arguments, buffer, ibuf);
-					i += ev_print_func(format, i + 1);
-				}
-			} i++;
+			if (format[i] == '\0')
+				return (-1);
 		}
 		else
-			handl_buf(buffer, format[i], ibuf), len++;
-		for (ibuf = len; ibuf > 1024; ibuf -= 1024)
-			;
-	}
-	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
-	return (len);
+		{
+			write(1, &format[i], 1);
+			count += 1;
+		}
+
+	va_end(lst);
+	return (count);
 }
