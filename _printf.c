@@ -1,54 +1,52 @@
-#include "holberton.h"
-#include <stdio.h>
+#include "main.h"
 
 /**
- * _printf - takes a string and args of each '%'
- * and prints them
- * @format: initial string containing % +
- * char denoting type and number of args
- * @...: variable list of arguments
+ * _printf - formatted output conversion and print data.
+ * @format: input string.
  *
- * Return: number of characters printed.
+ * Return: number of chars printed.
  */
 int _printf(const char *format, ...)
 {
-	int i, j;
-	int count = 0;
-	va_list lst;
-	interface ids[] = {
-		{'c', _print_char},
-		{'s', _print_string},
-		{'i', _print_int},
-		{'d', _print_int},
-		{'%', _print_mod},
-		{'\0', NULL}
-	};
+	unsigned int i = 0, len = 0, ibuf = 0;
+	va_list arguments;
+	int (*function)(va_list, char *, unsigned int);
+	char *buffer;
 
-	va_start(lst, format);
-	for (i = 0; format[i]; i++)
+	va_start(arguments, format), buffer = malloc(sizeof(char) * 1024);
+	if (!format || !buffer || (format[i] == '%' && !format[i + 1]))
+		return (-1);
+	if (!format[i])
+		return (0);
+	for (i = 0; format && format[i]; i++)
+	{
 		if (format[i] == '%')
 		{
-			i++;
-			for (; format[i] != '\0'; i++)
-			{
-				for (j = 0; ids[j].id != '\0'; j++)
-					if (format[i] == ids[j].id)
-					{
-						count += ids[j].fn(lst);
-						break;
-					}
-				if (ids[j].id)
-					break;
-			}
-			if (format[i] == '\0')
+			if (format[i + 1] == '\0')
+			{	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
 				return (-1);
+			}
+			else
+			{	function = get_print_func(format, i + 1);
+				if (function == NULL)
+				{
+					if (format[i + 1] == ' ' && !format[i + 2])
+						return (-1);
+					handl_buf(buffer, format[i], ibuf), len++, i--;
+				}
+				else
+				{
+					len += function(arguments, buffer, ibuf);
+					i += ev_print_func(format, i + 1);
+				}
+			} i++;
 		}
 		else
-		{
-			write(1, &format[i], 1);
-			count += 1;
-		}
-
-	va_end(lst);
-	return (count);
+			handl_buf(buffer, format[i], ibuf), len++;
+		for (ibuf = len; ibuf > 1024; ibuf -= 1024)
+			;
+	}
+	print_buf(buffer, ibuf), free(buffer), va_end(arguments);
+	return (len);
 }
+Footer
